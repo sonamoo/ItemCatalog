@@ -54,7 +54,7 @@ Base.metadata.create_all(engine)
 # session.add(cheesepizza)
 # session.commit()
 
-
+##### READ #####
 # firstResult = session.query(Restaurant).first()
 # firstResult.name
 
