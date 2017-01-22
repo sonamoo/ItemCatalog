@@ -29,13 +29,11 @@ class webserverHandler(BaseHTTPRequestHandler):
 				self.end_headers()
 
 				output += "<html><body>"
-				
-
 				for restaurant in restaurants:
 					output += "<p>%s</p>" % restaurant.name
 					output += "<a href='restaurants/%s/edit'>Edit</a>" % restaurant.id
 					output += "<br>"
-					output += "<a href='#'>Delete</a>"
+					output += "<a href='restaurants/%s/delete'>Delete</a>" % restaurant.id
 
 				output += "</body></html>"
 				self.wfile.write(output)
@@ -74,7 +72,23 @@ class webserverHandler(BaseHTTPRequestHandler):
 					output += "</form></body></html>"
 
 					self.wfile.write(output)
-				
+
+			if self.path.endswith("/delete"):
+				restaurant_id = self.path.split("/")[2]
+				requestedRestaurant = session.query(Restaurant).filter_by(id = restaurant_id).one()
+
+				if requestedRestaurant:
+					self.send_response(200)
+					self.send_header('Content-type', 'text/html')
+					self.end_headers()
+					output = ""
+					output += "<html><body>"
+					output += "<h2>Are you sure you want to delete %s?</h2>" % requestedRestaurant.name
+					output += "<form method = 'POST' enctype='multipart/form-data' action = '/restaurants/%s/delete'>" %requestedRestaurant.id
+					output += "<input type = 'submit' value = 'Delete'>"
+					output += "</form></body></html>"
+
+					self.wfile.write(output)
 
 		except IOError:
 			self.send_error(404, "File not Found %s" % self.path)
@@ -141,6 +155,25 @@ class webserverHandler(BaseHTTPRequestHandler):
 					self.send_header('Content-type', 'text/html')
 					self.send_header('Location', '/restaurants')
 					self.end_headers()
+
+
+
+			if self.path.endswith("/delete"):
+				ctype, pdict = cgi.parse_header(
+					self.headers.getheader('content-type'))
+				if ctype == 'multipart/form-data':
+					fields = cgi.parse_multipart(self.rfile, pdict)
+					restaurant_id = self.path.split("/")[2]
+					requestedRestaurant = session.query(Restaurant).filter_by(id = restaurant_id).one()
+					if requestedRestaurant :
+						session.delete(requestedRestaurant)
+						session.commit()
+						self.send_response(301)
+						self.send_header('Content-type', 'text/html')
+						self.send_header('Location', '/restaurants')
+						self.end_headers()
+
+
 		except:
 			pass
 
