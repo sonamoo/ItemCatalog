@@ -156,8 +156,6 @@ class webserverHandler(BaseHTTPRequestHandler):
 					self.send_header('Location', '/restaurants')
 					self.end_headers()
 
-
-
 			if self.path.endswith("/delete"):
 				ctype, pdict = cgi.parse_header(
 					self.headers.getheader('content-type'))
@@ -172,8 +170,6 @@ class webserverHandler(BaseHTTPRequestHandler):
 						self.send_header('Content-type', 'text/html')
 						self.send_header('Location', '/restaurants')
 						self.end_headers()
-
-
 		except:
 			pass
 
