@@ -1,48 +1,53 @@
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import cgi
 
+# import CRUD Operations from Lesson 1
+from database_setup import Base, Restaurant, MenuItem
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from database_setup import Base, Restaurant, MenuItem
 
 # Create session and connect to DB
 engine = create_engine('sqlite:///restaurantmenu.db')
 Base.metadata.bind = engine
-DBSession = sessionmaker(bind = engine)
+DBSession = sessionmaker(bind=engine)
 session = DBSession()
+
 
 class webserverHandler(BaseHTTPRequestHandler):
 	def do_GET(self):
 		try:
-			if self.path.endswith("/restaurant"):
+			if self.path.endswith("/restaurants"):
+				restaurants = session.query(Restaurant).all()
+				output = ""
+				output += "<a href='restaurants/new'>Make a New Restaurant!!</a>"
+
 				self.send_response(200)
 				self.send_header('Content-type', 'text/html')
 				self.end_headers()
 
-				output = ""
 				output += "<html><body>"
-				output += "<a href='restaurant/new'>Make a New Restaurant!!</a>"
+				
 
-				restaurants = session.query(Restaurant)
 				for restaurant in restaurants:
 					output += "<p>%s</p>" % restaurant.name
 					output += "<a href='#'>Edit</a>"
 					output += "<br>"
-					output += "<a href='#'>Delete</a>"	
-					output += "</body></html>"
+					output += "<a href='#'>Delete</a>"
 
+				output += "</body></html>"
 				self.wfile.write(output)
 				return
 			
-			if self.path.endswith("/restaurant/new"):
+			if self.path.endswith("/restaurants/new"):
 				self.send_response(200)
 				self.send_header('Content-type', 'text/html')
 				self.end_headers()
 				output = ""
 				output += "<html><body>"
-				output += "<h2>Register a New Restaurant</h2>"
-				output += "<form method='POST' enctype='multipart/form-data' action='/restaurant/new'>"
-				output += "<input name='newRestaurant' type='text' placeholder ='Creat a Restaurant'><input type='submit' value='Create'>"
+				output += "<h2>Register a New Resaurant</h2>"
+				output += "<form method = 'POST' enctype='multipart/form-data' 				action = '/restaurants/new'>"
+				output += "<input name = 'newRestaurant' type = 'text' 				placeholder = 'New Restaurant Name' > "
+				output += "<input type='submit' value='Create'>"
 				output += "</form></body></html>"
 				self.wfile.write(output)
 				return
@@ -53,41 +58,40 @@ class webserverHandler(BaseHTTPRequestHandler):
 
 	def do_POST(self):
 		try:
-			if self.path.endswith("/restaurant/new"):
+			if self.path.endswith("/restaurants/new"):
 				# ctype is foreign function library for Python
 				# cgi = Common Gateway Interface
 				# parse_header parses a MIME header (such as Content-Type) into a main value and a dictionary of parameters.
-				ctype, pdict = cgi.parse_header(self.headers.getheader(
-					'content-type'))
-
-				# rfile contains an input stream, positioned at the start of the optional input data.
-
+				ctype, pdict = cgi.parse_header(
+					self.headers.getheader('content-type'))
+				
 				if ctype == 'multipart/form-data':
+
+					"""
+					rfile = contains an input stream, positioned at the start 
+					of the optional input data.
+
+					cgi.parse_multipart = Parses input of type 
+					multipart/form-data (for file uploads). Arguments are fp 
+					for the input file and pdict for a dictionary containing 
+					other parameters in the Content-Type header. 
+					Returns a dictionary
+					"""
+
 					fields = cgi.parse_multipart(self.rfile, pdict)
-					newRestaurant = fields.get('newRestaurant')
-			
-					output = ""
-					output += "<html><body>"
-					output += "<h2> You just registered a restaurant bellow </h2>"
-					output += "<h1> %s </h1>" % newRestaurant[0]
-					output += "</body></html>"
 
-					createdRestaurant = Restaurant(name = newRestaurant[0])
-					session.add(createdRestaurant)
-					sesssion.commit()
+					messagecontent = fields.get('newRestaurant')
 
+					# Create new Restaurant Object
+					print "sss"
+					newRestaurant = Restaurant(name = messagecontent[0])
+					session.add(newRestaurant)
+					
+					session.commit()
 					self.send_response(301)
 					self.send_header('Content-type', 'text/html')
-					self.send_header('Location', '/restaurant')
+					self.send_header('Location', '/restaurants')
 					self.end_headers()
-
-					# myFirstRestaurant = Restaurant(name = "Pizza Palace")
-					# session.add(myFirstRestaurant)
-					# sesssion.commit()
-
-					self.wfile.write(output)
-
-					print output
 		except:
 			pass
 
