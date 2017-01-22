@@ -57,7 +57,6 @@ Base.metadata.create_all(engine)
 ##### READ #####
 # firstResult = session.query(Restaurant).first()
 # firstResult.name
-
 # session.query(Restaurant).all()
 # items = session.query(MenuItem).all()
 
@@ -71,6 +70,7 @@ Base.metadata.create_all(engine)
 
 # UrbanVeggieBurger = session.query(MenuItem).filter_by(id=8).one()
 
+##### UPDATE #####
 # for veggieBurger in veggieBurgers:
 # if veggieBurger.price != '$2.99':
 # veggieBurger.price = '$2.99'
